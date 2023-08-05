@@ -1,1 +1,1 @@
-# Protien-interaction
+# Protein-interaction
