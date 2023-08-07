@@ -14,42 +14,44 @@ def readDataNx2(name):
     #reads data from file into tensors
     with open(FILENAME, "r") as file:
         lines = file.readlines()
-
+            
+    # Initialize empty lists       
     list1 = []
     list2 = []
-
+    
+    # Iterate through lines and append to lists
     for line in lines:
         columns = line.strip().split('\t')
         if len(columns) >= 2:
-            list1.append(columns[0][4:])
-            list2.append(columns[1][4:])
-
-
-    # Create dictionaries
-    unique_elements = sorted(list(set(list1 + list2))) # Needs to be sorted to ensure same order
-    category_to_index = {category: index for index, category in enumerate(unique_elements)}
-    index_to_category = {index: category for category, index in category_to_index.items()}
-
-    # Convert strings to values
-    numeric_list1 = [category_to_index[val] for val in list1]
-    numeric_list2 = [category_to_index[val] for val in list2]
+            list1.append(columns[0][4:].lstrip('0'))
+            list2.append(columns[1][4:].lstrip('0'))
+        
+    # Print first 10 elements of lists
+    print(f"String List1: {list1[:10]}, String List2: {list2[:10]} ")
+    print("\n")
     
-    # Convert the numeric lists to numpy arrays
-    array1 = np.array(numeric_list1, dtype=np.int64)
-    array2 = np.array(numeric_list2, dtype=np.int64)
+    # Convert strings to integer values
+    numeric_list1 = [int(val) for val in list1]
+    numeric_list2 = [int(val) for val in list2]
     
-    # Convert dtype to float32 while preserving the integer values
-    array1 = array1.astype(np.float32)
-    array2 = array2.astype(np.float32)
-
-    # Convert the numpy arrays to PyTorch tensors ( should presereve the float32 dtype )
-    tensor1 = torch.from_numpy(array1)
-    tensor2 = torch.from_numpy(array2)
-
-    print(tensor1)
-    print(tensor2)
+    # Print first 10 elements of lists
+    print(f"Integer List1: {numeric_list1[:10]}, Integer List2: {numeric_list2[:10]} ")
+    print("\n")
     
-
+    # Convert lists into np arrays
+    np_array1 = np.array(numeric_list1)
+    np_array2 = np.array(numeric_list2)
+    
+    # onvert from np arrays to tensors
+    tensor1 = torch.from_numpy(np_array1)
+    tensor2 = torch.from_numpy(np_array2)
+    
+    # Print first 10 elements of tensors
+    print(f"Tensor1: {tensor1[:10]}, Tensor2: {tensor2[:10]} ")
+    print(f"Tensor DTypes: {tensor1.dtype}, {tensor2.dtype}")
+    print(f"Tensor Shapes: {tensor1.shape}, {tensor2.shape}")
+    
+    
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
