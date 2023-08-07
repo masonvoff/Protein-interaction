@@ -26,26 +26,29 @@ def readDataNx2(name):
 
 
     # Create dictionaries
-    unique_elements = list(set(list1 + list2))
+    unique_elements = sorted(list(set(list1 + list2))) # Needs to be sorted to ensure same order
     category_to_index = {category: index for index, category in enumerate(unique_elements)}
     index_to_category = {index: category for category, index in category_to_index.items()}
 
     # Convert strings to values
     numeric_list1 = [category_to_index[val] for val in list1]
     numeric_list2 = [category_to_index[val] for val in list2]
+    
+    # Convert the numeric lists to numpy arrays
+    array1 = np.array(numeric_list1, dtype=np.int64)
+    array2 = np.array(numeric_list2, dtype=np.int64)
+    
+    # Convert dtype to float32 while preserving the integer values
+    array1 = array1.astype(np.float32)
+    array2 = array2.astype(np.float32)
 
-    # Convert the numeric lists to PyTorch tensors ( cannot get this into float32 )
-    tensor1 = torch.tensor(numeric_list1, dtype=torch.int64)
-    tensor2 = torch.tensor(numeric_list2, dtype=torch.int64)
+    # Convert the numpy arrays to PyTorch tensors ( should presereve the float32 dtype )
+    tensor1 = torch.from_numpy(array1)
+    tensor2 = torch.from_numpy(array2)
 
     print(tensor1)
     print(tensor2)
-
-
-
-
-
-
+    
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
