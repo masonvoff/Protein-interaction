@@ -1,19 +1,19 @@
+# https://github.com/tkipf/pygcn/blob/master/pygcn/utils.py can be adapted for our data
 import torch
+import math
+from torch.nn.parameter import Parameter
+from torch.nn.modules.module import Module
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from torch import nn
 from numpy import genfromtxt
 from sklearn.model_selection import train_test_split
+from collections import defaultdict
 
 
 
 FILENAME = "HI-union.tsv"
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
 
 def readDataNx2(name):
     #reads data from file into tensors
@@ -73,43 +73,14 @@ def accuracy_fn(y_true, y_pred):
     acc = (correct / len(y_pred)) * 100
     return acc
 
+def createGraph(X,Y):
+
+    for element in X:
+        print(X[element.long()])
+
+
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     X, Y = readDataNx2(FILENAME)
+    createGraph(X,Y)
 
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2,  random_state=10)  #create test and train data
-    print(len(X_train), len(X_test), len(Y_train), len(Y_test))
-    Bmodel = BasicModel()
-    loss_fn = nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.SGD(params= Bmodel.parameters(), lr=0.1)
-    Y_logits = Bmodel(X_test.to(device))
-    print(Y_logits)
-
-
-    epochs = 10000
-    for epoch in range(epochs):
-        #training loop
-        Bmodel.train()
-        Y_logits = Bmodel(X_train).squeeze
-        Y_pred = torch.round(torch.sigmoid(Y_logits))
-
-        loss = loss_fn(Y_logits,Y_train)
-        acc = accuracy_fn(y_true=Y_train, y_pred=Y_pred)
-
-        optimizer.zero_grad()
-
-        loss.backward()
-
-        optimizer.step()
-
-        Bmodel.eval()
-
-        #testing loop
-        with torch.inference_mode():
-            test_logits = Bmodel(X_test).squeeze()
-            test_pred = torch.round(torch.sigmoid(test_logits))
-            test_loss = loss_fn(test_logits,Y_test)
-            test_acc = accuracy_fn(Y_test, test_pred)
-
-        if epoch % 10 == 0:
-            print(f"Epoch: {epoch} | Loss: {loss:.5f}, Accuracy: {acc:.2f}% | Test loss: {test_loss:.5f}, Test acc: {test_acc:.2f}%")
