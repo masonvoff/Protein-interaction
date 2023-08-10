@@ -4,6 +4,9 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from GC import GraphConvolution
 
+# Create a graph based on input data from HI-union.tsv
+
+
 
 class GCN(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout):
@@ -20,7 +23,7 @@ class GCN(nn.Module):
         return F.log_softmax(x, dim=1)
     
 # Set up a dataloader here
-
+data_loader = DataLoader()
     
 # Loss Function and Optimizer and accuracy function
 loss_func = nn.CrossEntropyLoss()
@@ -34,6 +37,7 @@ def accuracy_func(output, labels):
     
 # Set up Training ( basic for now variable and argument names will need to be changed)
 def training(model: torch.nn.Module,
+          data_loader: torch.utils.data.DataLoader,
           loss_func: torch.nn.Module,
           optimizer: torch.optim.Optimizer,
           accuracy_func,
@@ -41,7 +45,7 @@ def training(model: torch.nn.Module,
     model.train()
     
     # Put data on target device
-    
+    data_loader.to(device)
     # Forward pass
     
     # Loss and metrics
@@ -57,13 +61,15 @@ def training(model: torch.nn.Module,
 # Set up Testing ( basic for now variable and argument names will need to be changed)
 
 def testing(model: torch.nn.Module,
+          data_loader: torch.utils.data.DataLoader,
           loss_func: torch.nn.Module,
           accuracy_func,
           device: torch.device):
     model.eval()
     with torch.inference_mode():
         # Put data on target device
-    
+        data_loader.to(device)
+        
         # Forward pass
     
         # Loss and metrics
