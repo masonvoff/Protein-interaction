@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from GC import GraphConvolution
 import numpy as np
 
-# Create a graph based on input data from HI-union.tsv
+
 
 
 class GCN(nn.Module):

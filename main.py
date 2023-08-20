@@ -89,7 +89,7 @@ if __name__ == '__main__':
     graph = Graph(X, Y)
 
     # Example: Get neighbors of a tensor1 element
-    tensor1_index = 0  # Replace with the index you're interested in
+    tensor1_index = 0
     neighbors = graph.get_neighbors(tensor1_index)
     print(neighbors)
 
