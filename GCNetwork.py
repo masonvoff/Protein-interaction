@@ -4,10 +4,10 @@ import torch.nn.functional as F
 import networkx as nx
 from torch.utils.data import DataLoader
 from GC import GraphConvolution
+import numpy as np
 
 # Create a graph based on input data from HI-union.tsv
-G = nx.read_edgelist('HI-union.tsv')
-adj = torch.Tensor(nx.adjacency_matrix(G).todense())
+
 
 class GCN(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout):
@@ -34,11 +34,8 @@ class GraphData(torch.utils.data.Dataset):
     def __len__(self):
         return 1
     
-data_loader = DataLoader(GraphData(adj), batch_size=1, shuffle=True)
+#data_loader = DataLoader(GraphData(adj), batch_size=1, shuffle=True)
 
-# Loss Function and Optimizer and accuracy function
-loss_func = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(GCN.parameters(), lr=0.1)
 
 def accuracy_func(output, labels):
     correct = torch.eq(output, labels).sum().item()
@@ -53,6 +50,10 @@ def training(model: torch.nn.Module,
           optimizer: torch.optim.Optimizer,
           accuracy_func,
           device: torch.device):
+
+    train_loss = 0
+    train_acc = 0
+
     
     # Put in training mode
     labels = torch.Tensor([0, 1]) # Needs to be changed a bit I think 0 and 1 work to show either interaction or not
@@ -106,7 +107,7 @@ def testing(model: torch.nn.Module,
         
     test_loss /= len(data_loader)
     test_acc /= len(data_loader)
-    
+
     return test_loss, test_acc
         
     

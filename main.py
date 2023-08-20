@@ -10,6 +10,8 @@ from torch import nn
 from numpy import genfromtxt
 from sklearn.model_selection import train_test_split
 from collections import defaultdict
+import GCNetwork
+from GCNetwork import GCN
 
 
 
@@ -59,28 +61,51 @@ def readDataNx2(name):
     return tensor1, tensor2
 
 
-class BasicModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.layer_1 = nn.Linear(in_features=51204, out_features=5)
-        self.layer_2 = nn.Linear(in_features=5, out_features=1)
+class Graph:
+    def __init__(self, tensor1, tensor2):
+        self.tensor1 = tensor1
+        self.tensor2 = tensor2
+        self.adjacency_matrix = self._create_adjacency_matrix()
 
-    def forward(self, x):
-        return self.layer_2(self.layer_1(x))
+    def _create_adjacency_matrix(self):
+        num_tensor1 = len(self.tensor1)
+        num_tensor2 = len(self.tensor2)
+        adjacency_matrix = torch.zeros((num_tensor1, num_tensor2), dtype=torch.float)
 
-def accuracy_fn(y_true, y_pred):
-    correct = torch.eq(y_true, y_pred).sum().item() # torch.eq() calculates where two tensors are equal
-    acc = (correct / len(y_pred)) * 100
-    return acc
+        for i in range(num_tensor1):
+            adjacency_matrix[i, i] = 1
 
-def createGraph(X,Y):
+        return adjacency_matrix
 
-    for element in X:
-        print(X[element.long()])
+    def get_neighbors(self, tensor1_index):
+        return self.tensor2[tensor1_index]
 
 
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     X, Y = readDataNx2(FILENAME)
-    createGraph(X,Y)
+    print(torch.__version__)
+
+    graph = Graph(X, Y)
+
+    # Example: Get neighbors of a tensor1 element
+    tensor1_index = 0  # Replace with the index you're interested in
+    neighbors = graph.get_neighbors(tensor1_index)
+    print(neighbors)
+
+
+
+
+
+
+
+
+
+    myGCN = GCN(64006,10,64006,10)
+
+    # Loss Function and Optimizer and accuracy function
+    loss_func = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(myGCN.parameters(), lr=0.1)
+
+
 
