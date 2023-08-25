@@ -1,5 +1,7 @@
 # https://github.com/tkipf/pygcn/blob/master/pygcn/utils.py can be adapted for our data
 import torch
+import torch.nn as nn
+import torch.optim as optim
 import math
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
@@ -65,20 +67,34 @@ class Graph:
     def __init__(self, tensor1, tensor2):
         self.tensor1 = tensor1
         self.tensor2 = tensor2
-        self.adjacency_matrix = self._create_adjacency_matrix()
+        self._construct_graph()
 
-    def _create_adjacency_matrix(self):
-        num_tensor1 = len(self.tensor1)
-        num_tensor2 = len(self.tensor2)
-        adjacency_matrix = torch.zeros((num_tensor1, num_tensor2), dtype=torch.float)
+    def _construct_graph(self):
+        self.graph = {}
 
-        for i in range(num_tensor1):
-            adjacency_matrix[i, i] = 1
+        for i, value in enumerate(self.tensor1):
+            value = value.item()
+            if value not in self.graph:
+                self.graph[value] = []
+            self.graph[value].append(self.tensor2[i])
 
-        return adjacency_matrix
+    def get_neighbors(self, tensor1_value):
+        if tensor1_value in self.graph:
+            return self.graph[tensor1_value]
+        else:
+            return []
+class GCNet(nn.Module):
+    def __init__(self, num_features, hidden_size, num_classes):
+        super(GCNet, self).__init__()
+        self.conv1 = nn.Linear(num_features, hidden_size)
+        self.conv2 = nn.Linear(hidden_size, num_classes)
 
-    def get_neighbors(self, tensor1_index):
-        return self.tensor2[tensor1_index]
+    def forward(self, adjacency_matrix, features):
+        x = torch.mm(adjacency_matrix, features)
+        x = torch.relu(self.conv1(x))
+        x = self.conv2(x)
+        return x
+
 
 
 if __name__ == '__main__':
@@ -88,10 +104,59 @@ if __name__ == '__main__':
 
     graph = Graph(X, Y)
 
-    # Example: Get neighbors of a tensor1 element
-    tensor1_index = 0
+    #Get neighbors a tensor1
+    tensor1_index = 457.0
     neighbors = graph.get_neighbors(tensor1_index)
     print(neighbors)
+
+    tensor1 = X
+    tensor2 = Y
+
+    # Create the graph instance
+    graph = Graph(tensor1, tensor2)
+
+    # Construct adjacency matrix
+    num_nodes = len(tensor1)
+    adjacency_matrix = torch.zeros((num_nodes, num_nodes), dtype=torch.float)
+
+    for i in range(num_nodes):
+        neighbors = graph.get_neighbors(tensor1[i].item())
+        for neighbor in neighbors:
+            j = (tensor2 == neighbor).nonzero()
+            adjacency_matrix[i, j] = 1
+
+    # Hyperparameters
+    input_size = 1
+    hidden_size = 16
+    output_size = 1
+    learning_rate = 0.01
+    num_epochs = 100
+
+    # Create the GCN model
+    model = GCNet(input_size, hidden_size, output_size)
+
+    # Define loss function and optimizer
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    # Prepare features tensor
+    features = tensor1.view(-1, 1).float()
+
+    # Training loop
+    for epoch in range(num_epochs):
+        optimizer.zero_grad()
+        outputs = model(adjacency_matrix, features)
+        loss = criterion(outputs, features)
+        loss.backward()
+        optimizer.step()
+        print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
+
+    # Make predictions
+    model.eval()
+    with torch.no_grad():
+        predicted_features = model(adjacency_matrix, features)
+        print("Predicted Features:")
+        print(predicted_features)
 
 
 
