@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from collections import defaultdict
 import GCNetwork
 from GCNetwork import GCN
-
+import tqdm
 
 
 FILENAME = "HI-union.tsv"
@@ -144,6 +144,7 @@ if __name__ == '__main__':
 
     # Training loop
     for epoch in range(num_epochs):
+        model.train()
         optimizer.zero_grad()
         outputs = model(adjacency_matrix, features)
         loss = criterion(outputs, features)
@@ -165,12 +166,10 @@ if __name__ == '__main__':
 
 
 
-
     myGCN = GCN(64006,10,64006,10)
 
     # Loss Function and Optimizer and accuracy function
     loss_func = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(myGCN.parameters(), lr=0.1)
-
-
-
+    accuracy = lambda y_pred, y_true: torch.mean((torch.argmax(y_pred, dim=1) == y_true).float())
+     
