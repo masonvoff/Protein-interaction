@@ -63,6 +63,18 @@ def readDataNx2(name):
     print(f"Tensor Shapes: {tensor1.shape}, {tensor2.shape}")
     return tensor1, tensor2
 
+class Swish(nn.Module):
+    def forward(self, x):
+        return x * torch.sigmoid(x)
+
+class LeakyReLU(nn.Module):
+    def __init__(self, negative_slope=0.01):
+        super(LeakyReLU, self).__init__()
+        self.negative_slope = negative_slope
+
+    def forward(self, x):
+        return torch.max(x, self.negative_slope * x)
+
 
 class Graph:
     def __init__(self, tensor1, tensor2):
@@ -90,33 +102,26 @@ class GCNet(nn.Module):
         super(GCNet, self).__init__()
         self.layer1 = nn.Linear(input_size, hidden_size)
         self.layer2 = nn.Linear(hidden_size, output_size)
+        self.activation = Swish()
 
     def forward(self, adjacency_matrix, features):
         x = torch.mm(adjacency_matrix, features)
-        x = torch.relu(self.layer1(x))
+        x = self.activation(self.layer1(x))
         x = self.layer2(x)
         return x
 
 def graphData(tensor1,tensor2):
+
     G = nx.DiGraph()
-
-    # Add nodes
-
     G.add_node(tensor1[0].item())
-
-    # Add edges
-
     neighbors = graph.get_neighbors(tensor1[0].item())
     for neighbor in neighbors:
         G.add_edge(tensor1[0].item(), neighbor.item())
-
-    # Draw the graph
     pos = nx.spring_layout(G)
     nx.draw(G, pos, with_labels=True, node_size=1000, node_color="skyblue", font_size=10, font_color="black",
             font_weight="bold")
     plt.title("Graph Visualization")
     plt.show()
-
 
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -130,9 +135,6 @@ if __name__ == '__main__':
     tensor1 = X
     tensor2 = Y
     graph = Graph(tensor1, tensor2)
-    graphData(tensor1,tensor2)
-
-
 
     num_tensor1 = len(tensor1)
     num_tensor2 = len(tensor2)
@@ -146,10 +148,10 @@ if __name__ == '__main__':
 
     # Hyperparameters
     input_size = 1
-    hidden_size = 800
+    hidden_size = 3200
     output_size = 1
-    learning_rate = 1
-    num_epochs = 100
+    learning_rate = .001
+    num_epochs = 500
 
     # Create the GCN model
     model = GCNet(input_size, hidden_size, output_size)
